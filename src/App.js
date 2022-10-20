@@ -1,29 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './App.css';
-
-class Output extends React.Component {
-  render() {
-    return <body>Your message: {this.props.text}</body>;
-  }
-}
-
-function GetTime() {
-  const [currentTime, setCurrentTime] = useState([]);
-
-  useEffect(() => {
-    fetch("/api/time").then(
-      res => res.json()
-    ).then(
-      data => { setCurrentTime(data.time); }
-    );
-  }, []);
-
-  return (
-    <div className="Time">
-      <p>The current time is {currentTime}</p>
-    </div>
-  )
-}
 
 class App extends React.Component {
   constructor(props) {
@@ -31,7 +7,7 @@ class App extends React.Component {
     this.state = {
       foo: "foo",
       text: "",
-      reversed_text: "",
+      result: "",
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -39,13 +15,12 @@ class App extends React.Component {
 
   handleChange(event) {
     this.setState({ text: event.target.value });
-    // .split('').reverse().join('')
   }
 
   handleSubmit(event) {
     event.preventDefault();
     const inputText = event.target.inputFieldMessage.value
-    fetch("/api/reverse", {
+    fetch("/api/predict", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -54,14 +29,15 @@ class App extends React.Component {
     }).then(
       response => response.json()
     ).then(
-      data => { this.setState({ reversed_text: data.output }); }
+      data => { this.setState({ result: data.output }); }
     );
   }
 
   render() {
     return (
       <div className="App">
-        <GetTime />
+        <h1>Sentiment analysis</h1>
+        <h3>Submit a message and check it's sentiment</h3>
         <form
           onSubmit={this.handleSubmit}
         >
@@ -76,10 +52,9 @@ class App extends React.Component {
           </label>
           <input type="submit" value="Submit!" />
         </form>
-        {/* <div className="Output">
-          <Output text={this.state.text} />
-        </div> */}
-        <body>Your message reversed: {this.state.reversed_text}</body>
+        <div className="Output">
+          <p>Your message sentiment: {this.state.result}</p>
+        </div>
       </div>
     );
   }

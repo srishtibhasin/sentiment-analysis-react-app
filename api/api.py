@@ -1,15 +1,26 @@
 import time
+import joblib
 from flask import Flask, request, jsonify, abort, make_response
 
 app = Flask(__name__)
+
+MODEL_PATH = "../../models/sklearn_linearsvc_trained.joblib"
 
 @app.route('/api/time')
 def get_current_time():
     return {'time': time.time()}
 
-@app.route('/api/get', methods=['GET'])
-def get():
-   return { "title": 'React GET Request' }
+class SentimentClassifier:
+    def __init__(self):
+        self.model = self._get_trained_clf()
+
+    def _get_trained_clf(self):
+        return joblib.load(MODEL_PATH)  # LOAD TRAINED CLASSIFIER
+
+    def predict(self, text):
+        return self.model.predict([text])[0]
+
+classifier = SentimentClassifier()
 
 def _parse_request_body():
     """Extract first and last name from request."""
@@ -35,3 +46,12 @@ def reverse_text():
     inp = _parse_request_body()
     # return inp[::-1]
     return jsonify({"output": inp[::-1]})
+
+@app.route("/api/predict", methods=["POST"])
+def predict():
+    """Respond to requests for a prediction."""
+    text = _parse_request_body()
+    if text.strip() == "":
+        return jsonify({"output": ""})
+    sentiment = classifier.predict(text)
+    return jsonify({"output": sentiment})
